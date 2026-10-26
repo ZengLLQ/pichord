@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AirChord — Virtual Guitar Controller</title>
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M8 12h8"></path>
+          <path d="M12 8v8"></path>
+        </svg>
+        <h1 class="brand-title">AirChord</h1>
+        <span class="brand-tag">v2.0</span>
+      </div>
+
+      <nav class="app-nav" aria-label="Main Navigation">
+        <button type="button" class="nav-btn active" data-tab="play">Play</button>
+        <button type="button" class="nav-btn" data-tab="learn">Learn</button>
+        <button type="button" class="nav-btn" data-tab="settings">Settings</button>
+      </nav>
+
+      <div class="header-actions">
+        <div id="status-pill" class="status-pill">
+          <span class="status-dot"></span>
+          <span id="status-text">Ready</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <!-- PLAY VIEW -->
+      <section id="view-play" class="view-section active">
+        <div class="play-grid">
+          <!-- Camera Viewport Card -->
+          <article class="camera-card">
+            <!-- Hand Role Overlay Badges -->
+            <div class="hand-role-overlay">
+              <div id="badge-chord-hand" class="role-badge">
+                <span class="role-title">
+                  <span id="role-chord-hand-name">Left Hand</span>: Chord
+                </span>
+                <span id="role-chord-detail" class="role-detail">Waiting for hand...</span>
+              </div>
+              <div id="badge-strum-hand" class="role-badge">
+                <span class="role-title">
+                  <span id="role-strum-hand-name">Right Hand</span>: Strum
+                </span>
+                <span id="role-strum-detail" class="role-detail">Waiting for hand...</span>
+              </div>
+            </div>
+
+            <!-- Video & Canvas Viewport -->
+            <div class="camera-viewport">
+              <video id="webcam-video" class="camera-video" autoplay playsinline muted></video>
+              <canvas id="overlay-canvas" class="camera-overlay-canvas"></canvas>
+
+              <div id="camera-placeholder" class="camera-placeholder">
+                <svg class="camera-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+                <p>Click <strong>Start Playing</strong> to grant camera access and activate the computer vision engine.</p>
+                <button type="button" id="btn-hero-start" class="btn btn-primary">Start Playing</button>
+              </div>
+            </div>
+
+            <!-- Camera Toolbar -->
+            <div class="camera-toolbar">
+              <div class="toolbar-group">
+                <button type="button" id="btn-toggle-camera" class="btn btn-primary">
+                  <span id="btn-camera-text">Start Playing</span>
+                </button>
+                <button type="button" id="btn-recalibrate" class="btn btn-secondary" title="Recalibrate hands" disabled>
+                  Recalibrate
+                </button>
+                <button type="button" id="btn-toggle-diag" class="btn btn-secondary" title="Toggle diagnostics">
+                  Diagnostics
+                </button>
+              </div>
+
+              <div class="toolbar-group">
+                <div class="volume-control">
+                  <label for="master-volume-slider">Vol</label>
+                  <input type="range" id="master-volume-slider" class="volume-slider" min="0" max="1" step="0.05" value="0.85">
+                </div>
+                <select id="camera-select" class="form-select" title="Select camera device">
+                  <option value="">Default Camera</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Diagnostics Drawer -->
+            <aside id="diagnostics-panel" class="diagnostics-panel">
+              <div>
+                <span class="diag-stat-label">FPS:</span>
+                <span id="diag-fps" class="diag-stat-value">0.0</span>
+              </div>
+              <div>
+                <span class="diag-stat-label">Latency:</span>
+                <span id="diag-latency" class="diag-stat-value">0.0 ms</span>
+              </div>
+              <div>
+                <span class="diag-stat-label">Hands:</span>
+                <span id="diag-hands" class="diag-stat-value">0</span>
+              </div>
+              <div>
+                <span class="diag-stat-label">Fingers:</span>
+                <span id="diag-fingers" class="diag-stat-value">0</span>
+              </div>
+            </aside>
+          </article>
+
+          <!-- Instrument HUD Sidebar -->
+          <aside class="chord-hud">
+            <!-- Active Chord Showcase -->
+            <div class="hud-card">
+              <span class="hud-title">Active Guitar Chord</span>
+              <div class="active-chord-box">
+                <div id="chord-name-display" class="chord-name-huge">C</div>
+                <div id="chord-quality-display" class="chord-quality-badge">Major</div>
+                <div id="chord-hint-display" class="chord-finger-hint">
+                  <span id="chord-hint-fingers">1 Finger</span>: Index Raised
+                </div>
+              </div>
+            </div>
+
+            <!-- Strum Visualizer -->
+            <div class="hud-card">
+              <span class="hud-title">Strum Motion Detector</span>
+              <div class="strum-visualizer">
+                <div id="indicator-down" class="stroke-indicator">
+                  <svg class="stroke-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <polyline points="19 12 12 19 5 12"></polyline>
+                  </svg>
+                  <span class="stroke-label">Down</span>
+                </div>
+                <div id="indicator-up" class="stroke-indicator">
+                  <svg class="stroke-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="19" x2="12" y2="5"></line>
+                    <polyline points="5 12 12 5 19 12"></polyline>
+                  </svg>
+                  <span class="stroke-label">Up</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Gestures Cheatsheet -->
+            <div class="hud-card">
+              <span class="hud-title">Chord Gesture Map</span>
+              <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem;">
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--text-secondary);">1 Finger:</span>
+                  <strong style="color: var(--text-primary);" id="hint-chord-1">C Major</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--text-secondary);">2 Fingers:</span>
+                  <strong style="color: var(--text-primary);" id="hint-chord-2">G Major</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--text-secondary);">3 Fingers:</span>
+                  <strong style="color: var(--text-primary);" id="hint-chord-3">D Major</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--text-secondary);">4 Fingers:</span>
+                  <strong style="color: var(--text-primary);" id="hint-chord-4">E Minor</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--text-secondary);">5 Fingers:</span>
+                  <strong style="color: var(--text-primary);" id="hint-chord-5">A Minor</strong>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- LEARN VIEW -->
+      <section id="view-learn" class="view-section">
+        <header>
+          <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 6px;">How to Play AirChord</h2>
+          <p style="color: var(--text-secondary);">Position both hands in view of your camera. One hand selects chords; the other strums through the air.</p>
+        </header>
+
+        <div class="learn-grid">
+          <article class="learn-card">
+            <div class="learn-card-header">
+              <span class="learn-card-chord">C Major</span>
+              <span class="learn-card-fingers">1 Finger</span>
+            </div>
+            <p class="learn-card-desc">Raise only your index finger. AirChord immediately locks in the bright, resonant sound of C Major.</p>
+          </article>
+
+          <article class="learn-card">
+            <div class="learn-card-header">
+              <span class="learn-card-chord">G Major</span>
+              <span class="learn-card-fingers">2 Fingers</span>
+            </div>
+            <p class="learn-card-desc">Raise your index and middle fingers (peace sign). Perfect for standard acoustic progressions.</p>
+          </article>
+
+          <article class="learn-card">
+            <div class="learn-card-header">
+              <span class="learn-card-chord">D Major</span>
+              <span class="learn-card-fingers">3 Fingers</span>
+            </div>
+            <p class="learn-card-desc">Raise index, middle, and ring fingers. Rich high-frequency guitar resonance.</p>
+          </article>
+
+          <article class="learn-card">
+            <div class="learn-card-header">
+              <span class="learn-card-chord">E Minor</span>
+              <span class="learn-card-fingers">4 Fingers</span>
+            </div>
+            <p class="learn-card-desc">Raise four fingers (tucking in thumb). Moody, deep acoustic chord with open low E string.</p>
+          </article>
+
+          <article class="learn-card">
+            <div class="learn-card-header">
+              <span class="learn-card-chord">A Minor</span>
+              <span class="learn-card-fingers">5 Fingers</span>
+            </div>
+            <p class="learn-card-desc">Open your entire palm with all five fingers spread. Warm melancholic guitar harmony.</p>
+          </article>
+
+          <article class="learn-card">
+            <div class="learn-card-header">
+              <span class="learn-card-chord">Air Strumming</span>
+              <span class="learn-card-fingers" style="background-color: var(--surface-elevated); color: var(--text-primary);">Motion</span>
+            </div>
+            <p class="learn-card-desc">Move your strumming hand vertically through the air. A brisk downward swipe triggers a downstroke; an upward flick triggers an upstroke.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- SETTINGS VIEW -->
+      <section id="view-settings" class="view-section">
+        <div class="settings-container">
+          <form id="settings-form" class="settings-card" onsubmit="event.preventDefault();">
+            <h2 class="settings-section-title">Hand Roles</h2>
+            
+            <div class="form-row">
+              <div class="form-label-group">
+                <label for="setting-chord-hand" class="form-label">Chord Selection Hand</label>
+                <span class="form-hint">Hand that performs finger count gestures</span>
+              </div>
+              <select id="setting-chord-hand" class="form-select">
+                <option value="Left" selected>Left Hand (Standard)</option>
+                <option value="Right">Right Hand (Southpaw)</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <div class="form-label-group">
+                <label for="setting-strum-hand" class="form-label">Strumming Hand</label>
+                <span class="form-hint">Hand that performs vertical air strokes</span>
+              </div>
+              <select id="setting-strum-hand" class="form-select">
+                <option value="Right" selected>Right Hand (Standard)</option>
+                <option value="Left">Left Hand (Southpaw)</option>
+              </select>
+            </div>
+
+            <h2 class="settings-section-title">Motion & Gesture Sensitivity</h2>
+
+            <div class="form-row">
+              <div class="form-label-group">
+                <label for="setting-sensitivity" class="form-label">Strum Sensitivity</label>
+                <span class="form-hint">Multiplier for stroke velocity detection</span>
+              </div>
+              <input type="range" id="setting-sensitivity" class="form-range" min="0.5" max="2.0" step="0.1" value="1.0">
+            </div>
+
+            <div class="form-row">
+              <div class="form-label-group">
+                <label for="setting-stability" class="form-label">Gesture Stability Window</label>
+                <span class="form-hint">Time needed to confirm chord changes (ms)</span>
+              </div>
+              <input type="range" id="setting-stability" class="form-range" min="80" max="300" step="20" value="140">
+            </div>
+
+            <div class="form-row">
+              <div class="form-label-group">
+                <label for="setting-cooldown" class="form-label">Strum Cooldown</label>
+                <span class="form-hint">Minimum interval between strums (ms)</span>
+              </div>
+              <input type="range" id="setting-cooldown" class="form-range" min="60" max="250" step="10" value="120">
+            </div>
+
+            <h2 class="settings-section-title">Custom Gesture Chord Mappings</h2>
+
+            <div class="form-row">
+              <span class="form-label">1 Finger Gesture:</span>
+              <select id="map-finger-1" class="form-select chord-map-select" data-finger="1"></select>
+            </div>
+            <div class="form-row">
+              <span class="form-label">2 Fingers Gesture:</span>
+              <select id="map-finger-2" class="form-select chord-map-select" data-finger="2"></select>
+            </div>
+            <div class="form-row">
+              <span class="form-label">3 Fingers Gesture:</span>
+              <select id="map-finger-3" class="form-select chord-map-select" data-finger="3"></select>
+            </div>
+            <div class="form-row">
+              <span class="form-label">4 Fingers Gesture:</span>
+              <select id="map-finger-4" class="form-select chord-map-select" data-finger="4"></select>
+            </div>
+            <div class="form-row">
+              <span class="form-label">5 Fingers Gesture:</span>
+              <select id="map-finger-5" class="form-select chord-map-select" data-finger="5"></select>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px;">
+              <button type="button" id="btn-reset-settings" class="btn btn-secondary">Restore Defaults</button>
+              <button type="button" id="btn-save-settings" class="btn btn-primary">Save Settings</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal Dialog -->
+    <dialog id="modal-dialog" class="modal-dialog">
+      <h3 id="modal-title" class="modal-title">Notice</h3>
+      <p id="modal-body" class="modal-body"></p>
+      <div class="modal-actions">
+        <button type="button" id="btn-modal-close" class="btn btn-secondary">Dismiss</button>
+      </div>
+    </dialog>
+  </div>
+
+  <!-- JavaScript ES Modules -->
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

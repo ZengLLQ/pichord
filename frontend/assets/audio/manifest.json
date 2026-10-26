@@ -1,0 +1,76 @@
+{
+  "version": "1.0.0",
+  "sampleRate": 44100,
+  "chords": [
+    {
+      "id": "c-major",
+      "name": "C Major",
+      "frets": [
+        -1,
+        3,
+        2,
+        0,
+        1,
+        0
+      ],
+      "down": "/audio/chords/c-major-down.wav",
+      "up": "/audio/chords/c-major-up.wav"
+    },
+    {
+      "id": "g-major",
+      "name": "G Major",
+      "frets": [
+        3,
+        2,
+        0,
+        0,
+        0,
+        3
+      ],
+      "down": "/audio/chords/g-major-down.wav",
+      "up": "/audio/chords/g-major-up.wav"
+    },
+    {
+      "id": "d-major",
+      "name": "D Major",
+      "frets": [
+        -1,
+        -1,
+        0,
+        2,
+        3,
+        2
+      ],
+      "down": "/audio/chords/d-major-down.wav",
+      "up": "/audio/chords/d-major-up.wav"
+    },
+    {
+      "id": "e-minor",
+      "name": "E Minor",
+      "frets": [
+        0,
+        2,
+        2,
+        0,
+        0,
+        0
+      ],
+      "down": "/audio/chords/e-minor-down.wav",
+      "up": "/audio/chords/e-minor-up.wav"
+    },
+    {
+      "id": "a-minor",
+      "name": "A Minor",
+      "frets": [
+        -1,
+        0,
+        2,
+        2,
+        1,
+        0
+      ],
+      "down": "/audio/chords/a-minor-down.wav",
+      "up": "/audio/chords/a-minor-up.wav"
+    }
+  ]
+}
